@@ -62,7 +62,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           AWS_DEFAULT_REGION: "us-west-1"
         with:
-          github-token: ${{ secrets.GITHUB_SECRET }}
+          github-token: ${{ secrets.GIT_TOKEN }}
           script: |
             const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
