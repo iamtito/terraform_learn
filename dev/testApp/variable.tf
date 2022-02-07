@@ -22,13 +22,5 @@ variable "app" {
         Name = "testAppAPI"
       }
     }
-    "testappBastion" = {
-      enable_eip    = true
-      instance_type = "t2.micro"
-      tags = {
-        Env  = "Dev"
-        Name = "testAppABastion"
-      }
-    }
   }
 }
