@@ -20,7 +20,7 @@ terraform {
     region  = "us-west-1"
     encrypt = "true"
     profile = "default"
-    # profile = "terraform_tutorial"
+    # profile = "terraform_tutorial" 
   }
 }
 
