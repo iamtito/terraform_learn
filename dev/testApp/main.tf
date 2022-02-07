@@ -19,7 +19,8 @@ terraform {
     key     = "testApp/terraform.state"
     region  = "us-west-1"
     encrypt = "true"
-    # profile = "terraform_tutorial"
+    profile = "default"
+    # profile = "terraform_tutorial" 
   }
 }
 
