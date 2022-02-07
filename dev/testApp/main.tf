@@ -1,5 +1,5 @@
 provider "aws" {
-  profile = "terraform_tutorial"
+  # profile = "terraform_tutorial"
   region  = "us-west-1"
 }
 
@@ -19,7 +19,7 @@ terraform {
     key     = "testApp/terraform.state"
     region  = "us-west-1"
     encrypt = "true"
-    profile = "terraform_tutorial"
+    # profile = "terraform_tutorial"
   }
 }
 
