@@ -1,0 +1,77 @@
+name: Terraform Deployment
+on: 
+  pull_request:
+    types:
+      - opened
+    paths:
+      - 'dev/testApp/**'
+  
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Enter the env you want to deploy. Options: dev, staging, production"
+        default: dev
+        required: true
+      deploy:
+        description: "Enter the name of the application folder you want to deploy"
+        default: ""
+        required: true
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWC_SECRET_ACCESS_KEY: ${{ secrets.AWC_SECRET_ACCESS_KEY}}
+  tf_working_dir: ""
+
+jobs:
+  pull_request:
+    name: "Terraform Pull Requests"
+    runs-on: ubuntu-latest
+    default:
+      run:
+        working-directory: "${{ github.workspace }}/dev/testApp"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.0
+      - name: Init
+        id: init
+        run: terraform init
+      - name: validate
+        id: validate
+        run: terraform validate -no-color
+      - name: Plan
+        id: plan
+        run: terraform plan -no-color
+      - uses: actions/github-script@0.9.0
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_SECRET }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outputs.stdout }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            
+            <details><summary>Show Plan</summary>
+            
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+            
+            </details>
+            
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+              
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+            
+      # - name: Terraform Apply
+      #   if: github.event.inputs.type == 'apply'
+      #   id: apply
+      #   run: terraform apply --auto-approve -no-color
