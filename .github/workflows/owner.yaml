@@ -1,0 +1,19 @@
+name: Owner
+
+on:
+  pull_request:
+    branches-ignore:    
+      - 'dependabot/**'
+    types: [opened, edited]
+
+jobs:
+  validator:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Validator
+        uses: mszostok/codeowners-validator@v0.7.1
+        # with:
+        #   github_access_token: ${{ secrets.GIT_TOKEN }}
