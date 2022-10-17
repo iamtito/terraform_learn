@@ -1,0 +1,67 @@
+name: Lint
+on:
+  - pull_request
+
+jobs:
+  detect-changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      tf_files: ${{ steps.filter.outputs.tf_files }}
+      tf: ${{ steps.filter.outputs.tf }}
+      yaml_files: ${{ steps.filter.outputs.yaml_files }}
+      yaml: ${{ steps.filter.outputs.yaml }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          lfs: false
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: .github/config/filters.yaml
+          list-files: 'shell'
+
+  terraform-fmt:
+    name: Formatting
+    needs: detect-changes
+    runs-on: ubuntu-latest
+
+    if: ${{ needs.detect-changes.outputs.tf == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.1.7
+      - name: Terraform fmt
+        env:
+          FILES: ${{ needs.detect-changes.outputs.tf_files }}
+        run: |
+          parallel terraform fmt -diff -check ::: $FILES
+
+  yaml-lint:
+    name: Yaml Linting
+    needs: detect-changes
+    runs-on: ubuntu-latest
+
+    if: ${{ needs.detect-changes.outputs.yaml == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: YAML Lint
+        uses: karancode/yamllint-github-action@v2.0.0
+        with:
+          yamllint_comment: true
+          yamllint_config_filepath: .github/config/yaml-linter.yaml
+          yamllint_format: parsable
+          yamllint_file_or_dir: ${{ needs.detect-changes.outputs.yaml_files }}
+
+  tf-lint:  
+    name: Linting
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.tf == 'true' }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@main
+      - name: Lint Terraform
+        uses: actionshub/terraform-lint@main

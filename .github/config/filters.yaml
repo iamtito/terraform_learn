@@ -1,0 +1,4 @@
+tf:
+  - added|modified: '**/*.tf'
+yaml:
+  - added|modified: '**/*.y*ml'
