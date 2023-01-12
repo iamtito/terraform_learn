@@ -60,17 +60,17 @@ jobs:
             if ${{ github.base_ref == 'dev' }}; then
               echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
               echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY}}" >> $GITHUB_ENV
-              echo "BRANCH='dev-it" >> $GITHUB_ENV
+              echo "BRANCH='dev-it'" >> $GITHUB_ENV
               echo "AWS_DEFAULT_REGION=us-west-1" >> $GITHUB_ENV
             elif ${{ github.base_ref == 'test' }}; then
               echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
               echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY}}" >> $GITHUB_ENV
-              echo "BRANCH='test-it" >> $GITHUB_ENV
+              echo "BRANCH='test-it'" >> $GITHUB_ENV
               echo "AWS_DEFAULT_REGION=us-west-1" >> $GITHUB_ENV
             elif ${{ github.base_ref == 'main' }}; then
               echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
               echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY}}" >> $GITHUB_ENV
-              echo "BRANCH='main-it" >> $GITHUB_ENV
+              echo "BRANCH='main-it'" >> $GITHUB_ENV
               echo "AWS_DEFAULT_REGION=us-west-1" >> $GITHUB_ENV
             fi
           fi
