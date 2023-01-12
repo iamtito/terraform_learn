@@ -3,6 +3,7 @@ on:
   pull_request:
     types:
       - opened
+      - edited
     paths:
       - 'dev/testApp/**.tf'
   
@@ -29,8 +30,8 @@ jobs:
       run:
         working-directory: "${{ github.workspace }}/dev/testApp"
     steps:
-      - run: echo "${{ toJson(github) }}"
       - uses: actions/checkout@v2
+      - run: echo "${{ toJson(github) }}"
       - name: Env construct
         run: |
           if ${{ github.ref == 'refs/head/dev' }}; then
