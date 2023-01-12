@@ -16,10 +16,10 @@ on:
         description: "Enter the name of the application folder you want to deploy"
         default: ""
         required: true
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-  # tf_working_dir: ""
+# env:
+#   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+#   # tf_working_dir: ""
 
 jobs:
   pull_request:
@@ -29,6 +29,8 @@ jobs:
       run:
         working-directory: "${{ github.workspace }}/dev/testApp"
     steps:
+      - run: echo "${{ toJson(github) }}"
+      - uses: actions/checkout@v2
       - name: Env construct
         run: |
           if ${{ github.ref == 'refs/head/dev' }}; then
@@ -47,7 +49,7 @@ jobs:
             echo "BRANCH='preprod-it" >> $GITHUB_ENV
             echo "AWS_DEFAULT_REGION=us-west-1" >> $GITHUB_ENV
           fi
-      - uses: actions/checkout@v2
+      
       - uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.0.0
