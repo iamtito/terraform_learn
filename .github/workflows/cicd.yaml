@@ -1,10 +1,14 @@
 name: Terraform Deployment
 on: 
+  push:
+    branches: [ "test", "dev", "preprod"]
+
   pull_request:
     types:
       - opened
+      - edited
     paths:
-      - 'dev/testApp/**'
+      - 'dev/testApp/**.tf'
   
   workflow_dispatch:
     inputs:
@@ -16,10 +20,10 @@ on:
         description: "Enter the name of the application folder you want to deploy"
         default: ""
         required: true
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-  # tf_working_dir: ""
+# env:
+#   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+#   # tf_working_dir: ""
 
 jobs:
   pull_request:
@@ -30,6 +34,47 @@ jobs:
         working-directory: "${{ github.workspace }}/dev/testApp"
     steps:
       - uses: actions/checkout@v2
+      - run: echo "${{ toJson(github) }}"
+      - name: Env construct
+        run: |
+          if ${{ github.event_name == 'push' }}; then
+            ######## Push Event Logic ####
+            if ${{ github.ref == 'refs/heads/dev' }}; then
+              echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+              echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY}}" >> $GITHUB_ENV
+              echo "BRANCH='dev-it'" >> $GITHUB_ENV
+              echo "AWS_DEFAULT_REGION=us-west-1" >> $GITHUB_ENV
+            elif ${{ github.ref == 'refs/heads/test' }}; then
+              echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+              echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY}}" >> $GITHUB_ENV
+              echo "BRANCH='test-it'" >> $GITHUB_ENV
+              echo "AWS_DEFAULT_REGION=us-west-1" >> $GITHUB_ENV
+            elif ${{ github.ref == 'refs/heads/main' }}; then
+              echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+              echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY}}" >> $GITHUB_ENV
+              echo "BRANCH='preprod-it'" >> $GITHUB_ENV
+              echo "AWS_DEFAULT_REGION=us-west-1" >> $GITHUB_ENV
+            fi
+          elif ${{ github.event_name == 'pull_request' }}; then
+            ######## Pull Request Logic ####
+            if ${{ github.base_ref == 'dev' }}; then
+              echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+              echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY}}" >> $GITHUB_ENV
+              echo "BRANCH='dev-it'" >> $GITHUB_ENV
+              echo "AWS_DEFAULT_REGION=us-west-1" >> $GITHUB_ENV
+            elif ${{ github.base_ref == 'test' }}; then
+              echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+              echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY}}" >> $GITHUB_ENV
+              echo "BRANCH='test-it'" >> $GITHUB_ENV
+              echo "AWS_DEFAULT_REGION=us-west-1" >> $GITHUB_ENV
+            elif ${{ github.base_ref == 'main' }}; then
+              echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+              echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY}}" >> $GITHUB_ENV
+              echo "BRANCH='main-it'" >> $GITHUB_ENV
+              echo "AWS_DEFAULT_REGION=us-west-1" >> $GITHUB_ENV
+            fi
+          fi
+      
       - uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.0.0
@@ -37,34 +82,26 @@ jobs:
         id: fmt
         run: terraform fmt -check
         continue-on-error: true
+      - name: echo branch
+        run: echo $BRANCH
+      - name: echo branch with env
+        run: echo ${{env.BRANCH}} with env
       - name: Init
         id: init
         run: terraform init
-        env:
-          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
-          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          AWS_DEFAULT_REGION: "us-west-1"
+
       - name: validate
         id: validate
         run: terraform validate -no-color
-        env:
-          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
-          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          AWS_DEFAULT_REGION: "us-west-1"
+
       - name: Plan
         id: plan
         run: terraform plan -no-color
-        env:
-          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
-          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          AWS_DEFAULT_REGION: "us-west-1"
+
       - uses: actions/github-script@0.9.0
         if: github.event_name == 'pull_request'
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
-          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          AWS_DEFAULT_REGION: "us-west-1"
         with:
           github-token: ${{ secrets.GIT_TOKEN }}
           script: |
